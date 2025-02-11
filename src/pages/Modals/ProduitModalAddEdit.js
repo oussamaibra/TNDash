@@ -158,65 +158,65 @@ const ProduitModalAddEdit = (props) => {
   };
 
   const handleonfinish = async (val) => {
-    // const config = {
-    //   headers: {
-    //     authorization: JSON.parse(localStorage.getItem("token")),
-    //   },
-    // };
-    // let user = JSON.parse(localStorage.getItem("user"));
-    // const values = {
-    //   ...val,
-    //   id: props.record.id,
-    // };
-    // const option = values?.options?.map((el, key) => ({
-    //   ...el,
-    //   images: images[key].join(","),
-    //   sizes: "iphone",
-    //   price: Number(el.price),
-    //   discount: Number(el.discount),
-    //   stock: Number(el.stock),
-    //   color: "eeeee",
-    //   id: el?.id,
-    // }));
-    // if (props.type === "EDIT") {
-    //   await axios
-    //     .put("https://www.tnprime.shop:6443/api/v1/products/" + values.id, {
-    //       name: values.name,
-    //       description: values.description,
-    //       detail: values.detail,
-    //       categoryId: values.categoryId,
-    //       collectionId: values.collectionId,
-    //       option: option,
-    //     })
-    //     .then((response) => {
-    //       notification.success({ message: "Update Done  " });
-    //       props.refetech();
-    //       onCancel();
-    //     })
-    //     .catch(function (err) {
-    //       props.refetech();
-    //       onCancel();
-    //     });
-    // } else {
-    //   await axios
-    //     .post("https://www.tnprime.shop:6443/api/v1/products", {
-    //       name: values.name,
-    //       description: values.description,
-    //       detail: values.detail,
-    //       categoryId: values.categoryId,
-    //       collectionId: values.collectionId,
-    //       option: option,
-    //     })
-    //     .then((response) => {
-    //       notification.success({ message: "Create Done  " });
-    //       props.refetech();
-    //       onCancel();
-    //     })
-    //     .catch(function (err) {
-    //       props.refetech();
-    //       onCancel();
-    //     });
-    // }
+    const config = {
+      headers: {
+        authorization: JSON.parse(localStorage.getItem("token")),
+      },
+    };
+    let user = JSON.parse(localStorage.getItem("user"));
+    const values = {
+      ...val,
+      id: props.record.id,
+    };
+    const option = values?.options?.map((el, key) => ({
+      ...el,
+      images: images[key].join(","),
+      sizes: "iphone",
+      price: Number(el.price),
+      discount: Number(el.discount),
+      stock: Number(el.stock),
+      color: "eeeee",
+      id: el?.id,
+    }));
+    if (props.type === "EDIT") {
+      await axios
+        .put("https://www.tnprime.shop:6443/api/v1/products/" + values.id, {
+          name: values.name,
+          description: values.description,
+          detail: values.detail,
+          categoryId: values.categoryId,
+          collectionId: values.collectionId,
+          option: option,
+        })
+        .then((response) => {
+          notification.success({ message: "Update Done  " });
+          props.refetech();
+          onCancel();
+        })
+        .catch(function (err) {
+          props.refetech();
+          onCancel();
+        });
+    } else {
+      await axios
+        .post("https://www.tnprime.shop:6443/api/v1/products", {
+          name: values.name,
+          description: values.description,
+          detail: values.detail,
+          categoryId: values.categoryId,
+          collectionId: values.collectionId,
+          option: option,
+        })
+        .then((response) => {
+          notification.success({ message: "Create Done  " });
+          props.refetech();
+          onCancel();
+        })
+        .catch(function (err) {
+          props.refetech();
+          onCancel();
+        });
+    }
   };
 
   return (

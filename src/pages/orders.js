@@ -96,6 +96,7 @@ const Orders = () => {
     },
   ]);
   const [search, setSearch] = useState("");
+  const [searchAny, setsearchAny] = useState("");
   const [description, setdescription] = useState("");
   const [ThumbnailImage, setThumbnailImage] = useState("");
   const [data, setData] = useState([]);
@@ -241,29 +242,21 @@ const Orders = () => {
   ];
 
   const columns2 = [
-
-
     {
       title: "Product Image",
       dataIndex: "prooptions",
       key: "prooptions",
       render: (text, record) => (
-        <img
-          src={record?.image?.split(',')[0]}
-          height={100}
-          width={100}
-        />
+        <img src={record?.image?.split(",")[0]} height={100} width={100} />
       ),
     },
 
-    
     {
       title: "quantity",
       dataIndex: "quantity",
       key: "quantity",
       render: (text, record) => <p>{record?.quantity}</p>,
     },
-
 
     {
       title: "Product size",
@@ -294,12 +287,9 @@ const Orders = () => {
 
   const handelUpdate = async (status) => {
     await axios
-      .put(
-        `https://www.tnprime.shop:6443/api/v1/orders/${record?._id}`,
-        {
-          status: status,
-        }
-      )
+      .put(`https://www.tnprime.shop:6443/api/v1/orders/${record?._id}`, {
+        status: status,
+      })
       .then(function (response) {
         handrefetech();
         setisload(false);
@@ -323,6 +313,34 @@ const Orders = () => {
               title="Liste des Commandes"
               extra={
                 <div className="d-flex">
+                  <Input
+                    style={{
+                      marginRight: "20px",
+                    }}
+                    placeholder="Search by Any keyworld"
+                    onChange={(e) => {
+                      setsearchAny(e.target.value);
+                      setfilterData(
+                        data.filter(
+                          (el) =>
+                            (el.customerName
+                              .toLowerCase()
+                              .includes(e.target.value.toLowerCase()) ||
+                              el.customerPhone
+                                .toLowerCase()
+                                .includes(e.target.value.toLowerCase()) ||
+                              el.shippingAddress
+                                .toLowerCase()
+                                .includes(e.target.value.toLowerCase())) &&
+                            el.status
+                              .toLowerCase()
+                              .includes(search.toLowerCase())
+                        )
+                      );
+                    }}
+                    value={searchAny}
+                  />
+
                   <Select
                     onChange={(value) => {
                       setSearch(value);
@@ -345,7 +363,11 @@ const Orders = () => {
               <div className="table-responsive">
                 <Table
                   columns={columns}
-                  dataSource={search?.length > 0 ? filterData : data}
+                  dataSource={
+                    search?.length > 0 || searchAny?.length > 0
+                      ? filterData
+                      : data
+                  }
                   pagination={true}
                   className="ant-border-space"
                 />
@@ -384,7 +406,10 @@ const Orders = () => {
 
             <h3> Nom du Client: {record && record?.customerName} </h3>
             <h3> Telephone: {record && record?.customerPhone} </h3>
-            <h3> Commande: {record && record?.orderDetail?.length} article(s) </h3>
+            <h3>
+              {" "}
+              Commande: {record && record?.orderDetail?.length} article(s){" "}
+            </h3>
             <h2>
               <strong>
                 {" "}
