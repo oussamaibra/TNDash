@@ -68,13 +68,6 @@ function EChart({ data }) {
     eChart.series[0].data = sortedEntries.map((entry) => entry[1].total);
   }
 
-  // // 5. Test with your sample order
-  // const testOrder = [{
-  //   "_id": "67a9fc0d8df70f565f24c323",
-  //   "orderDate": "2025-02-05T00:00:00.000Z",
-  //   "totalPrice": 30
-  // }];
-
   updateChart(data.filter((el) => el.status === "valide"));
 
   return (
