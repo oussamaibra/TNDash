@@ -64,7 +64,7 @@ import face6 from "../assets/images/face-6.jpeg";
 import pencil from "../assets/images/pencil.svg";
 import CategorieModalAddEdit from "./Modals/CategorieModalAddEdit.js";
 import { CirclePicker } from "react-color";
-import _ from "lodash";
+import _, { sumBy } from "lodash";
 import moment from "moment";
 
 const { Title } = Typography;
@@ -96,6 +96,7 @@ const Orders = () => {
     },
   ]);
   const [search, setSearch] = useState("");
+  const [month, setmonth] = useState("");
   const [searchAny, setsearchAny] = useState("");
   const [description, setdescription] = useState("");
   const [ThumbnailImage, setThumbnailImage] = useState("");
@@ -192,15 +193,19 @@ const Orders = () => {
       key: "city",
     },
     {
-      title: "Order Date",
+      title: "Product (if one only)",
       key: "orderDate",
       dataIndex: "orderDate",
-      render: (x) => {
-        const dateObject = datetime(x);
-
-        const formattedDate = dateObject.format("YYYY-MM-DD");
-        return <time>{formattedDate}</time>;
-      },
+      render: (text, record) =>
+        record?.orderDetail.length === 1 ? (
+          <Image
+            src={record?.orderDetail[0]?.image?.split(",")[0]}
+            height={100}
+            width={100}
+          />
+        ) : (
+          <> NA </>
+        ),
     },
     {
       title: "Action",
@@ -310,7 +315,32 @@ const Orders = () => {
               bordered={false}
               loading={isload}
               className="criclebox tablespace mb-24"
-              title="Liste des Commandes"
+              title={`Liste des Commandes (${sumBy(
+                search?.length > 0 || searchAny?.length > 0 || month?.length > 0
+                  ? filterData
+                  : data,
+                (o) => {
+                  return Number(o.totalPrice);
+                }
+              )} TND)
+              
+              🚩 Valide : ${
+                search?.length > 0 || searchAny?.length > 0 || month?.length > 0
+                  ? filterData.filter((el) => el.status === "valide").length
+                  : data.filter((el) => el.status === "valide").length
+              } 
+              
+              🚩 En attente : ${
+                search?.length > 0 || searchAny?.length > 0 || month?.length > 0
+                  ? filterData.filter((el) => el.status === "en attente").length
+                  : data.filter((el) => el.status === "en attente").length
+              }
+              
+            🚩 Annuler : ${
+              search?.length > 0 || searchAny?.length > 0 || month?.length > 0
+                ? filterData.filter((el) => el.status === "annuler").length
+                : data.filter((el) => el.status === "annuler").length
+            } Commandes`}
               extra={
                 <div className="d-flex">
                   <Input
@@ -342,6 +372,9 @@ const Orders = () => {
                   />
 
                   <Select
+                    style={{
+                      marginRight: "20px",
+                    }}
                     onChange={(value) => {
                       setSearch(value);
                       setfilterData(
@@ -357,6 +390,28 @@ const Orders = () => {
                     <Select.Option value="annuler">Annuler</Select.Option>
                     <Select.Option value="">All</Select.Option>
                   </Select>
+
+                  <Select
+                    onChange={(value) => {
+                      setmonth(value);
+                      setfilterData(
+                        data.filter((el) =>
+                          el.city.toLowerCase().includes(value.toLowerCase())
+                        )
+                      );
+                    }}
+                    value={month}
+                  >
+                    {_.times(31, (n) => {
+                      return (
+                        <Select.Option
+                          value={moment().day(n).format("YYYY-MM-DD")}
+                        >
+                          {moment().day(n).format("YYYY-MM-DD")}
+                        </Select.Option>
+                      );
+                    })}
+                  </Select>
                 </div>
               }
             >
@@ -364,7 +419,9 @@ const Orders = () => {
                 <Table
                   columns={columns}
                   dataSource={
-                    search?.length > 0 || searchAny?.length > 0
+                    search?.length > 0 ||
+                    searchAny?.length > 0 ||
+                    month?.length > 0
                       ? filterData
                       : data
                   }
