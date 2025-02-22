@@ -85,7 +85,7 @@ const ProduitModalAddEdit = (props) => {
           sizes: ["iphone"],
           stock: el?.stock,
           price: el?.price,
-          discount: el?.discount,
+          discount: Number(el?.discount),
           id: el.id,
         })),
       });
@@ -173,7 +173,7 @@ const ProduitModalAddEdit = (props) => {
       images: images[key].join(","),
       sizes: "iphone",
       price: Number(el.price),
-      discount: Number(el.discount),
+      discount: Number(el.discount ?? 0),
       stock: Number(el.stock),
       color: "eeeee",
       id: el?.id,
@@ -362,7 +362,29 @@ const ProduitModalAddEdit = (props) => {
                                   },
                                 ]}
                               >
-                                <Input placeholder="discount" type="number" />
+                                {/* <Input placeholder="discount" type="number" /> */}
+
+                                <Select
+                                  placeholder="discount"
+                                  options={[
+                                    {
+                                      value: 0,
+                                      label: "na",
+                                    },
+                                    {
+                                      value: 1,
+                                      label: "out of stock",
+                                    },
+                                    {
+                                      value: 2,
+                                      label: "best saller",
+                                    },
+                                    {
+                                      value: 3,
+                                      label: "new collection",
+                                    },
+                                  ]}
+                                />
                               </Form.Item>
                             </Col>
 
