@@ -406,6 +406,7 @@ const Orders = () => {
 
             <h3> Nom du Client: {record && record?.customerName} </h3>
             <h3> Telephone: {record && record?.customerPhone} </h3>
+            <h3> shipping Address: {record && record?.shippingAddress} </h3>
             <h3>
               {" "}
               Commande: {record && record?.orderDetail?.length} article(s){" "}
