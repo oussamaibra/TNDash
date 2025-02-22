@@ -9,7 +9,7 @@
   =========================================================
   * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Card,
@@ -45,6 +45,9 @@ import team2 from "../assets/images/team-2.jpg";
 import team3 from "../assets/images/team-3.jpg";
 import team4 from "../assets/images/team-4.jpg";
 import card from "../assets/images/info-card-1.jpg";
+import axios from "axios";
+import _, { sumBy } from "lodash";
+import moment from "moment";
 
 function Home() {
   const { Title, Text } = Typography;
@@ -52,6 +55,36 @@ function Home() {
   const onChange = (e) => console.log(`radio checked:${e.target.value}`);
 
   const [reverse, setReverse] = useState(false);
+  const [data, setData] = useState([]);
+  const [filterData, setfilterData] = useState([]);
+  const [custom, setcustom] = useState([]);
+  const [isload, setisload] = useState(true);
+
+  useEffect(() => {
+    axios
+      .get("https://www.tnprime.shop:6443/api/v1/orders")
+      .then((response) => {
+        console.log("response", response);
+        if (response.data.data) {
+          const sortedArray = _.sortBy(response?.data?.data, function (o) {
+            return new moment(o?.city);
+          }).reverse();
+
+          setData(sortedArray);
+          setisload(false);
+        }
+      });
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get("https://www.tnprime.shop:6443/api/v1/customers")
+      .then((response) => {
+        if (response.data.data) {
+          setcustom(response.data.data);
+        }
+      });
+  }, []);
 
   const dollor = [
     <svg
@@ -141,33 +174,53 @@ function Home() {
   ];
   const count = [
     {
-      today: "Today’s Sales",
-      title: "$53,000",
-      persent: "+30%",
+      today: "Total Sales Valide",
+      title: `${sumBy(
+        data.filter((el) => el.status.toLowerCase().includes("valide")),
+        (o) => {
+          return Number(o.totalPrice);
+        }
+      )} TND`,
       icon: dollor,
-      bnb: "bnb2",
     },
     {
-      today: "Today’s Users",
-      title: "3,200",
-      persent: "+20%",
-      icon: profile,
-      bnb: "bnb2",
+      today: "Today’s Sales Valide",
+      title: `${sumBy(
+        data.filter((el) =>
+          el.status.toLowerCase().includes("valide") &&
+          el.city.toLowerCase().includes(moment().format("YYYY-MM-DD"))
+        ),
+        (o) => {
+          return Number(o.totalPrice);
+        }
+      )} TND`,
+      icon: dollor,
     },
     {
-      today: "New Clients",
-      title: "+1,200",
-      persent: "-20%",
+      today: "Today’s Sales To Validate (en attente)",
+      title: `${
+        data.filter(
+          (el) =>
+            el.status.toLowerCase().includes("en attente") &&
+            el.city.toLowerCase().includes(moment().format("YYYY-MM-DD"))
+        ).length
+      }`,
+
       icon: heart,
-      bnb: "redtext",
     },
+
     {
-      today: "New Orders",
-      title: "$13,200",
-      persent: "10%",
-      icon: cart,
-      bnb: "bnb2",
-    },
+      today: "Today’s Sales canceled (annuler)",
+      title: `${
+        data.filter(
+          (el) =>
+            el.status.toLowerCase().includes("annuler") &&
+            el.city.toLowerCase().includes(moment().format("YYYY-MM-DD"))
+        ).length
+      }`,
+
+      icon: heart,
+    }
   ];
 
   const list = [
@@ -350,8 +403,8 @@ function Home() {
               xs={24}
               sm={24}
               md={12}
-              lg={6}
-              xl={6}
+              lg={12}
+              xl={12}
               className="mb-24"
             >
               <Card bordered={false} className="criclebox ">
@@ -374,18 +427,18 @@ function Home() {
         </Row>
 
         <Row gutter={[24, 0]}>
-          <Col xs={24} sm={24} md={12} lg={12} xl={10} className="mb-24">
+          <Col xs={24} sm={24} md={24} lg={24} xl={24} className="mb-24">
             <Card bordered={false} className="criclebox h-full">
-              <Echart />
+              <Echart data={data} />
             </Card>
           </Col>
-          <Col xs={24} sm={24} md={12} lg={12} xl={14} className="mb-24">
+          {/* <Col xs={24} sm={24} md={12} lg={12} xl={14} className="mb-24">
             <Card bordered={false} className="criclebox h-full">
-              <LineChart />
+              <LineChart data={data} />
             </Card>
-          </Col>
+          </Col> */}
         </Row>
-
+        {/* 
         <Row gutter={[24, 0]}>
           <Col xs={24} sm={24} md={12} lg={12} xl={16} className="mb-24">
             <Card bordered={false} className="criclebox cardbody h-full">
@@ -552,7 +605,7 @@ function Home() {
               </div>
             </Card>
           </Col>
-        </Row>
+        </Row> */}
       </div>
     </>
   );

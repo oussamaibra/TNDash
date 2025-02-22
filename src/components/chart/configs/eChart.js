@@ -1,8 +1,8 @@
 const eChart = {
   series: [
     {
-      name: "Sales",
-      data: [450, 200, 100, 220, 500, 100, 400, 230, 500],
+      name: "Total Revenue",
+      data: [30], // Add more values as needed (summed totalPrice for each month)
       color: "#fff",
     },
   ],
@@ -12,10 +12,7 @@ const eChart = {
       type: "bar",
       width: "100%",
       height: "auto",
-
-      toolbar: {
-        show: false,
-      },
+      toolbar: { show: false },
     },
     plotOptions: {
       bar: {
@@ -24,9 +21,7 @@ const eChart = {
         borderRadius: 5,
       },
     },
-    dataLabels: {
-      enabled: false,
-    },
+    dataLabels: { enabled: false },
     stroke: {
       show: true,
       width: 1,
@@ -39,68 +34,39 @@ const eChart = {
     },
     xaxis: {
       categories: [
-        "Feb",
-        "Mar",
-        "Apr",
+        "January",
+        "February",
+        "March",
+        "April",
         "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-      ],
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ], // Add more months as needed from orderDate
       labels: {
         show: true,
         align: "right",
-        minWidth: 0,
-        maxWidth: 160,
-        style: {
-          colors: [
-            "#fff",
-            "#fff",
-            "#fff",
-            "#fff",
-            "#fff",
-            "#fff",
-            "#fff",
-            "#fff",
-            "#fff",
-            "#fff",
-          ],
-        },
+        style: { colors: Array(10).fill("#fff") },
       },
     },
     yaxis: {
       labels: {
         show: true,
         align: "right",
-        minWidth: 0,
-        maxWidth: 160,
-        style: {
-          colors: [
-            "#fff",
-            "#fff",
-            "#fff",
-            "#fff",
-            "#fff",
-            "#fff",
-            "#fff",
-            "#fff",
-            "#fff",
-            "#fff",
-          ],
-        },
+        style: { colors: Array(10).fill("#fff") },
       },
     },
-
     tooltip: {
       y: {
         formatter: function (val) {
-          return "$ " + val + " thousands";
+          return "TND " + val; // Changed currency to TND
         },
       },
     },
   },
 };
-
 export default eChart;

@@ -13,8 +13,8 @@
 import ReactApexChart from "react-apexcharts";
 import { Row, Col, Typography } from "antd";
 import eChart from "./configs/eChart";
-
-function EChart() {
+import moment from "moment";
+function EChart({ data }) {
   const { Title, Paragraph } = Typography;
 
   const items = [
@@ -36,6 +36,47 @@ function EChart() {
     },
   ];
 
+  // 1. Define month names in correct order
+  function processOrders(orders) {
+    const monthlyData = {};
+
+    orders.forEach((order) => {
+      const date = moment(order.orderDate);
+      if (!date.isValid()) return;
+
+      const year = date.year();
+      const monthName = `${date.format("MMMM")} ${year}`;
+      const sortKey = date.format("YYYY-MM");
+
+      monthlyData[sortKey] = {
+        display: monthName,
+        total: (monthlyData[sortKey]?.total || 0) + order.totalPrice,
+        sortValue: date.valueOf(), // Timestamp for sorting
+      };
+    });
+
+    return monthlyData;
+  }
+
+  function updateChart(orders) {
+    const monthlyData = processOrders(orders);
+
+    const sortedEntries = Object.entries(monthlyData).sort(
+      (a, b) => a[1].sortValue - b[1].sortValue
+    );
+
+    eChart.series[0].data = sortedEntries.map((entry) => entry[1].total);
+  }
+
+  // // 5. Test with your sample order
+  // const testOrder = [{
+  //   "_id": "67a9fc0d8df70f565f24c323",
+  //   "orderDate": "2025-02-05T00:00:00.000Z",
+  //   "totalPrice": 30
+  // }];
+
+  updateChart(data.filter((el) => el.status === "valide"));
+
   return (
     <>
       <div id="chart">
@@ -44,28 +85,8 @@ function EChart() {
           options={eChart.options}
           series={eChart.series}
           type="bar"
-          height={220}
+          height={400}
         />
-      </div>
-      <div className="chart-vistior">
-        <Title level={5}>Active Users</Title>
-        <Paragraph className="lastweek">
-          than last week <span className="bnb2">+30%</span>
-        </Paragraph>
-        <Paragraph className="lastweek">
-          We have created multiple options for you to put together and customise
-          into pixel perfect pages.
-        </Paragraph>
-        <Row gutter>
-          {items.map((v, index) => (
-            <Col xs={6} xl={6} sm={6} md={6} key={index}>
-              <div className="chart-visitor-count">
-                <Title level={4}>{v.Title}</Title>
-                <span>{v.user}</span>
-              </div>
-            </Col>
-          ))}
-        </Row>
       </div>
     </>
   );
