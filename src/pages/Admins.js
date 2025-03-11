@@ -132,7 +132,7 @@ const Admins = () => {
         console.log("Success delete ", dataDelete);
         setisload(true);
         await axios
-          .delete(`http://127.0.0.1:6443/api/v1/users/users/${alldata._id}`)
+          .delete(`https://www.tnprime.shop:6443/api/v1/users/users/${alldata._id}`)
           .then(function (response) {
             handrefetech();
             setisload(false);
@@ -241,7 +241,7 @@ const Admins = () => {
   )?.can;
 
   useEffect(() => {
-    axios.get("http://127.0.0.1:6443/api/v1/users/users").then((response) => {
+    axios.get("https://www.tnprime.shop:6443/api/v1/users/users").then((response) => {
       console.log("Admins", response);
       if (response.data) {
         setData(response.data);
