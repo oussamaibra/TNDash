@@ -77,7 +77,6 @@ const getBase64 = (file) =>
 
 // project table start
 
-
 const Categorie = () => {
   const onChange = (e) => console.log(`radio checked:${e.target.value}`);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -131,7 +130,9 @@ const Categorie = () => {
         console.log("Success delete ", dataDelete);
         setisload(true);
         await axios
-          .delete(`https://www.tnprime.shop:6443/api/v1/categories/${alldata.id}`)
+          .delete(
+            `https://www.tnprime.shop:6443/api/v1/categories/${alldata.id}`
+          )
           .then(function (response) {
             handrefetech();
             setisload(false);
@@ -160,7 +161,10 @@ const Categorie = () => {
     </div>
   );
 
- 
+  const abilities = JSON.parse(localStorage.getItem("user"))?.abilities?.find(
+    (el) => el.page === "categorie"
+  )?.can;
+
   const columns = [
     { title: "Id", dataIndex: "id", key: "id" },
     {
@@ -185,13 +189,12 @@ const Categorie = () => {
       title: "createdAt",
       key: "createdAt",
       dataIndex: "createdAt",
-      render: (x) => 
-        { const dateObject = datetime(x); 
-        
-          const formattedDate = dateObject.format("DD/MM/YYYY");
-          return <time>{formattedDate}</time>;
-        } 
-      
+      render: (x) => {
+        const dateObject = datetime(x);
+
+        const formattedDate = dateObject.format("DD/MM/YYYY");
+        return <time>{formattedDate}</time>;
+      },
     },
     {
       title: "updatedAt",
@@ -199,11 +202,16 @@ const Categorie = () => {
       dataIndex: "updatedAt",
       render: (x) => {
         if (!x) {
-          return <Badge className="site-badge-count-109"  style={{
-        
-          }} status="processing" text="Non modifié" />;
+          return (
+            <Badge
+              className="site-badge-count-109"
+              style={{}}
+              status="processing"
+              text="Non modifié"
+            />
+          );
         }
-    
+
         const dateObject = datetime(x);
         const formattedDate = dateObject.format("DD/MM/YYYY");
         return <time>{formattedDate}</time>;
@@ -213,64 +221,73 @@ const Categorie = () => {
       title: "Action",
       key: "action",
       width: 200,
-      fixed: 'right',
+      fixed: "right",
       render: (_, record) => (
         <div className="action-buttons">
           <Row>
-            <Col span={8} className="ms-2">
-              {" "}
-              <Button
-                onClick={() => {
-                  setVisible(true);
-                  setrecord(record);
-                  setAction("EDIT");
-                }}
-              >
-                <EditTwoTone />
-              </Button>
-            </Col>
-            <Col span={8} className="ms-2">
-              {" "}
-              <Button
-                onClick={() => {
-                  setshow1(true);
-                  console.log("category record detail" , record)
-                  setrecord(record);
-                  // setrecordOption(record?.option);
-                  // setoptionColor(record?.option[0].color);
-                }}
-              >
-                <InfoCircleOutlined />
-              </Button>
-            </Col>
-            <Col span={8} className="ms-2">
-              {" "}
-              <Button
-                type="primary "
-                danger
-                onClick={() => showPromiseConfirm(record, record.id)}
-              >
-                <DeleteTwoTone twoToneColor="#FFFFFF" />
-              </Button>
-            </Col>
+            {abilities.includes("edit") && (
+              <Col span={8} className="ms-2">
+                {" "}
+                <Button
+                  onClick={() => {
+                    setVisible(true);
+                    setrecord(record);
+                    setAction("EDIT");
+                  }}
+                >
+                  <EditTwoTone />
+                </Button>
+              </Col>
+            )}
+
+            {abilities.includes("read") && (
+              <Col span={8} className="ms-2">
+                {" "}
+                <Button
+                  onClick={() => {
+                    setshow1(true);
+                    console.log("category record detail", record);
+                    setrecord(record);
+                    // setrecordOption(record?.option);
+                    // setoptionColor(record?.option[0].color);
+                  }}
+                >
+                  <InfoCircleOutlined />
+                </Button>
+              </Col>
+            )}
+
+            {abilities.includes("delete") && (
+              <Col span={8} className="ms-2">
+                {" "}
+                <Button
+                  type="primary "
+                  danger
+                  onClick={() => showPromiseConfirm(record, record.id)}
+                >
+                  <DeleteTwoTone twoToneColor="#FFFFFF" />
+                </Button>
+              </Col>
+            )}
           </Row>
         </div>
       ),
     },
   ];
 
-
   useEffect(() => {
-    axios.get("https://www.tnprime.shop:6443/api/v1/categories").then((response) => {
-      console.log("response", response);
-      if (response.data.data) {
-        setData(response.data.data);
-        setisload(false);
-      } else {
-        notification.error({ message: "No Data Found" });
-        setisload(false);
-      }
-    });
+    axios
+      .get("https://www.tnprime.shop:6443/api/v1/categories")
+      .then((response) => {
+        console.log("response", response);
+        if (response.data.data) {
+          setData(response.data.data);
+          setisload(false);
+        } else {
+          notification.error({ message: "No Data Found" });
+          setisload(false);
+        }
+      });
   }, [refetech]);
   const onFinish = async (values) => {
     setisload(true);
@@ -301,16 +318,18 @@ const Categorie = () => {
               title="Liste des catégories"
               extra={
                 <>
-                  <Button
-                    type="primary"
-                    onClick={() => {
-                      setVisible(true);
-                      setrecord({});
-                      setAction("ADD");
-                    }}
-                  >
-                    Ajouter une catégorie
-                  </Button>
+                  {abilities.includes("create") && (
+                    <Button
+                      type="primary"
+                      onClick={() => {
+                        setVisible(true);
+                        setrecord({});
+                        setAction("ADD");
+                      }}
+                    >
+                      Ajouter une catégorie
+                    </Button>
+                  )}
                 </>
               }
             >
@@ -318,7 +337,6 @@ const Categorie = () => {
                 <Table
                   columns={columns}
                   dataSource={data}
-                  
                   pagination={true}
                   className="ant-border-space"
                 />
@@ -336,36 +354,37 @@ const Categorie = () => {
       </div>
 
       <Modal
-  visible={show1}
-  destroyOnClose
-  width={1000}
-  footer= {false}
-  onCancel={() => setshow1(false)}
->
-  {record && (
-    <Card>
-      <Row>
-        <Col span={12}>
-          <div className="ant-row-flex ant-row-flex-center">
-            <Carousel autoplay>
-              {record.thumbnailImage?.split(",").map((el, index) => (
-                <Image src={el} width={"90%"} key={index} />
-              ))}
-            </Carousel>
-          </div>
-        </Col>
-        <Col span={12}>
-          <h1><strong>{record?.name}</strong></h1>
-          <hr />
-          <p><strong>{record?.description}</strong></p>
-        
-         
-        </Col>
-      </Row>
-    </Card>
-  )}
-</Modal>
-
+        visible={show1}
+        destroyOnClose
+        width={1000}
+        footer={false}
+        onCancel={() => setshow1(false)}
+      >
+        {record && (
+          <Card>
+            <Row>
+              <Col span={12}>
+                <div className="ant-row-flex ant-row-flex-center">
+                  <Carousel autoplay>
+                    {record.thumbnailImage?.split(",").map((el, index) => (
+                      <Image src={el} width={"90%"} key={index} />
+                    ))}
+                  </Carousel>
+                </div>
+              </Col>
+              <Col span={12}>
+                <h1>
+                  <strong>{record?.name}</strong>
+                </h1>
+                <hr />
+                <p>
+                  <strong>{record?.description}</strong>
+                </p>
+              </Col>
+            </Row>
+          </Card>
+        )}
+      </Modal>
     </>
   );
 };

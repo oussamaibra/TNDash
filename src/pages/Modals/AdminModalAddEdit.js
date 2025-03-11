@@ -23,6 +23,8 @@ import { notification } from "antd";
 import axios from "axios";
 import {
   CloudUploadOutlined,
+  MinusCircleOutlined,
+  PlusOutlined,
   VerticalAlignTopOutlined,
 } from "@ant-design/icons";
 import { isNil } from "lodash";
@@ -34,7 +36,7 @@ const AddOrUpdateAdmin = (props) => {
   const [Loading, setLoading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
-  const serverURL = "https://www.tnprime.shop:6443";
+  const serverURL = "http://127.0.0.1:6443";
 
   const [form] = useForm();
 
@@ -51,53 +53,6 @@ const AddOrUpdateAdmin = (props) => {
     }
   }, [form, props.record, props.visible]);
 
-  const getBase64 = (img, callback) => {
-    const reader = new FileReader();
-    reader.addEventListener("load", () => callback(reader.result));
-    reader.readAsDataURL(img);
-  };
-
-  const handleChange = async (info, listfilesuploaded) => {
-    setLoading(true);
-    try {
-      const listOfPromise = [];
-      info?.fileList?.forEach((el) => {
-        if (
-          !isNil(el?.originFileObj?.name) &&
-          !listfilesuploaded?.find(
-            (val) =>
-              val ===
-              "https://www.tnprime.shop:6443" + "/images/" + el?.originFileObj?.name
-          )
-        ) {
-          console.log("eeeeeeeeee");
-          var bodyFormData = new FormData();
-
-          bodyFormData.append("images", el.originFileObj);
-          form.setFieldsValue({
-            images: [
-              ...form.getFieldValue("images"),
-              "https://www.tnprime.shop:6443" + "/images/" + el?.originFileObj.name,
-            ],
-          });
-          listOfPromise.push(
-            axios({
-              method: "post",
-              url: "https://www.tnprime.shop:6443" + "/api/upload",
-              data: bodyFormData,
-              headers: { "Content-Type": "multipart/form-data" },
-            })
-          );
-        }
-      });
-      await Promise.all(listOfPromise);
-      setLoading(false);
-    } catch (err) {
-      setLoading(false);
-      console.log(err);
-    }
-  };
-
   const handleonfinish = async (val) => {
     const config = {
       headers: {
@@ -108,19 +63,19 @@ const AddOrUpdateAdmin = (props) => {
     let user = JSON.parse(localStorage.getItem("user"));
     const values = {
       ...val,
-      id: props.record.id,
+      id: props.record._id,
     };
     console.log("values", values);
     const img = form.getFieldValue("images");
     if (props.type === "EDIT") {
       console.log("edit", values);
       await axios
-        .put("https://www.tnprime.shop:6443/api/v1/admins/" + values.id, {
-          username: values?.username,
-          password: values?.password,
-          email: values?.email,
-          role: "ADMIN",
-          active: values?.status,
+        .put("http://127.0.0.1:6443/api/v1/users/users/" + values.id, {
+          name: values.name,
+          email: values.email,
+          password: values.password,
+          role: values.role,
+          abilities: values.abilities,
         })
         .then((response) => {
           notification.success({ message: "Update Done  " });
@@ -134,11 +89,12 @@ const AddOrUpdateAdmin = (props) => {
     } else {
       console.log("from", form.getFieldValue("data"));
       await axios
-        .post("https://www.tnprime.shop:6443/api/v1/admins", {
-          email: values?.email,
-          username: values?.username,
-          password: values?.password,
-          role: "ADMIN",
+        .post("http://127.0.0.1:6443/api/v1/users/users", {
+          name: values.name,
+          email: values.email,
+          password: values.password,
+          role: values.role,
+          abilities: values.abilities,
         })
         .then((response) => {
           console.log("response", response);
@@ -152,15 +108,7 @@ const AddOrUpdateAdmin = (props) => {
         });
     }
   };
-  const handlePreview = async (file) => {
-    console.log("file", file);
-    // if (!file.url && !file.preview) {
-    //   file.preview = await getBase64(file.originFileObj);
-    // }
-    setPreviewImage(file.url || file.preview);
-    setPreviewOpen(true);
-    // setPreviewTitle(file.name || file.url.substring(file.url.lastIndexOf('/') + 1));
-  };
+
   return (
     <>
       <Modal
@@ -215,7 +163,7 @@ const AddOrUpdateAdmin = (props) => {
                     <Row>
                       <Col span={24}>
                         <Form.Item
-                          name="username"
+                          name="name"
                           rules={[
                             {
                               required: true,
@@ -240,39 +188,145 @@ const AddOrUpdateAdmin = (props) => {
                           <Input placeholder="Email" type="Email" />
                         </Form.Item>
                       </Col>
-                      <Col span={24}>
-                        {props.type === "EDIT" ? (
-                          <Form.Item
-                            name="status"
-                            rules={[
-                              {
-                                required: true,
-                                message: "Merci de sélectionner le statut!",
-                              },
-                            ]}
-                          >
-                            <Select placeholder="Statut">
-                              <Select.Option value={true}>
-                                Activer
-                              </Select.Option>
-                              <Select.Option value={false}>
-                                Suspendre
-                              </Select.Option>
-                            </Select>
-                          </Form.Item>
-                        ) : (
+
+                      {props.type !== "EDIT" && (
+                        <Col span={24}>
                           <Form.Item
                             name="password"
                             rules={[
                               {
                                 required: true,
-                                message: "Merci de saisir le mot de passe'!",
+                                message: "Merci de saisir le mot de pass!",
                               },
                             ]}
                           >
-                            <TextArea placeholder="Mot de passe" type="text" />
+                            <Input placeholder="new password" type="text" />
                           </Form.Item>
-                        )}
+                        </Col>
+                      )}
+
+                      <Col span={24}>
+                        <Form.Item
+                          name="role"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Merci de saisir le role !",
+                            },
+                          ]}
+                        >
+                          <Input placeholder="role" type="text" />
+                        </Form.Item>
+                      </Col>
+
+                      <Col span={24}>
+                        <Form.List name="abilities">
+                          {(fields, { add, remove }) => (
+                            <>
+                              {fields.map(({ key, name, ...restField }) => (
+                                <>
+                                  <Row>
+                                    <Col span={12} style={{ marginRight: 10 }}>
+                                      <Form.Item
+                                        {...restField}
+                                        name={[name, "page"]}
+                                        rules={[
+                                          {
+                                            required: true,
+                                            message: "Missing Page",
+                                          },
+                                        ]}
+                                      >
+                                        <Select
+                                          placeholder="can"
+                                          options={[
+                                            {
+                                              label: "dashboard",
+                                              value: "dashboard",
+                                            },
+                                            {
+                                              label: "categorie",
+                                              value: "categorie",
+                                            },
+                                            {
+                                              label: "produit",
+                                              value: "produit",
+                                            },
+                                            {
+                                              label: "orders",
+                                              value: "orders",
+                                            },
+                                            {
+                                              label: "admins",
+                                              value: "admins",
+                                            },
+                                          ]}
+                                        />
+                                      </Form.Item>
+                                    </Col>
+
+                                    <Col span={12} style={{ marginRight: 10 }}>
+                                      <Form.Item
+                                        {...restField}
+                                        name={[name, "can"]}
+                                        rules={[
+                                          {
+                                            required: true,
+                                            message: "Missing abilities",
+                                          },
+                                        ]}
+                                      >
+                                        <Select
+                                          placeholder="can"
+                                          mode="multiple"
+                                          options={[
+                                            { label: "create", value: "create" },
+                                            { label: "read", value: "read" },
+                                            {
+                                              label: "delete",
+                                              value: "delete",
+                                            },
+                                            {
+                                              label: "edit",
+                                              value: "edit",
+                                            },
+                                          ]}
+                                        />
+                                      </Form.Item>
+                                    </Col>
+                                  </Row>
+
+                                  <Row>
+                                    <Col
+                                      span={6}
+                                      style={{ marginRight: 25, marginTop: 10 }}
+                                    >
+                                      <MinusCircleOutlined
+                                        onClick={() => remove(name)}
+                                        style={{
+                                          marginLeft: 40,
+                                          marginTop: 10,
+                                        }}
+                                      />
+                                    </Col>
+                                  </Row>
+
+                                  <hr></hr>
+                                </>
+                              ))}
+                              <Form.Item>
+                                <Button
+                                  type="dashed"
+                                  onClick={() => add()}
+                                  block
+                                  icon={<PlusOutlined />}
+                                >
+                                  Ajouter une Option
+                                </Button>
+                              </Form.Item>
+                            </>
+                          )}
+                        </Form.List>
                       </Col>
                     </Row>
                   )}

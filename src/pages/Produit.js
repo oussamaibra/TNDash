@@ -130,6 +130,10 @@ const Produit = () => {
   const [refetech, setrefetech] = useState(false);
   const [show, setshow] = useState(false);
 
+  const abilities = JSON.parse(localStorage.getItem("user"))?.abilities?.find(
+    (el) => el.page === "produit"
+  )?.can;
+
   useEffect(() => {
     axios
       .get("https://www.tnprime.shop:6443/api/v1/products")
@@ -239,42 +243,49 @@ const Produit = () => {
       render: (_, record) => (
         <div className="action-buttons">
           <Row>
-            <Col span={8} className="ms-2">
-              {" "}
-              <Button
-                onClick={() => {
-                  setVisible(true);
-                  setrecord(record);
-                  setAction("EDIT");
-                }}
-              >
-                <EditTwoTone />
-              </Button>
-            </Col>
-            <Col span={8} className="ms-2">
-              {" "}
-              <Button
-                onClick={() => {
-                  setshow(true);
-                  setrecord(record);
-                  setrecordOption(record?.option);
-                  setoptionColor(record?.option[0].color);
-                }}
-              >
-                <InfoCircleOutlined />
-              </Button>
-            </Col>
+            {abilities.includes("edit") && (
+              <Col span={8} className="ms-2">
+                {" "}
+                <Button
+                  onClick={() => {
+                    setVisible(true);
+                    setrecord(record);
+                    setAction("EDIT");
+                  }}
+                >
+                  <EditTwoTone />
+                </Button>
+              </Col>
+            )}
 
-            <Col span={8}>
-              {" "}
-              <Button
-                type="primary"
-                danger
-                onClick={() => showPromiseConfirm(record, record.id)}
-              >
-                <DeleteTwoTone twoToneColor="#FFFFFF" />
-              </Button>
-            </Col>
+            {abilities.includes("read") && (
+              <Col span={8} className="ms-2">
+                {" "}
+                <Button
+                  onClick={() => {
+                    setshow(true);
+                    setrecord(record);
+                    setrecordOption(record?.option);
+                    setoptionColor(record?.option[0].color);
+                  }}
+                >
+                  <InfoCircleOutlined />
+                </Button>
+              </Col>
+            )}
+
+            {abilities.includes("delete") && (
+              <Col span={8}>
+                {" "}
+                <Button
+                  type="primary"
+                  danger
+                  onClick={() => showPromiseConfirm(record, record.id)}
+                >
+                  <DeleteTwoTone twoToneColor="#FFFFFF" />
+                </Button>
+              </Col>
+            )}
           </Row>
         </div>
       ),
@@ -337,16 +348,19 @@ const Produit = () => {
                     {" "}
                     Rechercher
                   </Button>
-                  <Button
-                    type="primary"
-                    onClick={() => {
-                      setVisible(true);
-                      setrecord({});
-                      setAction("ADD");
-                    }}
-                  >
-                    Ajouter un produit
-                  </Button>
+
+                  {abilities.includes("create") && (
+                    <Button
+                      type="primary"
+                      onClick={() => {
+                        setVisible(true);
+                        setrecord({});
+                        setAction("ADD");
+                      }}
+                    >
+                      Ajouter un produit
+                    </Button>
+                  )}
                 </div>
               }
             >

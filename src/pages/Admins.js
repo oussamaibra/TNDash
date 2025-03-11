@@ -127,17 +127,12 @@ const Admins = () => {
     confirm({
       title: "Vous voulez supprimer " + alldata.name + "?",
       icon: <ExclamationCircleOutlined />,
-      content:
-        "lorsque vous appuillez sur ok la catégorie : " +
-        alldata.name +
-        " " +
-        " sera supprimer !",
 
       async onOk() {
         console.log("Success delete ", dataDelete);
         setisload(true);
         await axios
-          .delete(`https://www.tnprime.shop:6443/api/v1/categories/${alldata.id}`)
+          .delete(`http://127.0.0.1:6443/api/v1/users/users/${alldata._id}`)
           .then(function (response) {
             handrefetech();
             setisload(false);
@@ -146,12 +141,12 @@ const Admins = () => {
             console.log(err);
             setisload(false);
           });
-        message.success("Catégorie supprimer avec succee..................");
+        message.success("user supprimer avec succee.");
       },
       onCancel() {},
     });
   };
-console.log('record' , record)
+
   const handleChange = ({ fileList: newFileList }) => setFileList(newFileList);
   const uploadButton = (
     <div>
@@ -167,11 +162,11 @@ console.log('record' , record)
   );
 
   const columns = [
-    { title: "Id", dataIndex: "id", key: "id" },
+    { title: "Id", dataIndex: "_id", key: "_id" },
     {
       title: "Nom d'utilisateur",
-      dataIndex: "username",
-      key: "username",
+      dataIndex: "name",
+      key: "name",
     },
     {
       title: "Email",
@@ -186,61 +181,6 @@ console.log('record' , record)
     },
 
     {
-      title: "Status du compte",
-      key: "active",
-      dataIndex: "active",
-      ellipsis: true,
-      render: (text) => {
-        if (text === true) {
-          return<>
-          <Badge
-          className="site-badge-count-109"
-          count={"Activé"}
-          style={{ backgroundColor: '#52c41a' }}
-        /></> 
-        } else {
-          return   <Badge
-          className="site-badge-count-109"
-          count={"Suspendu"}
-        
-          style={{ backgroundColor: '#f5222d' }}
-        />;
-        }
-      },
-    },
-    {
-      title: "createdAt",
-      key: "createdAt",
-      dataIndex: "createdAt",
-      render: (x) => {
-        const dateObject = datetime(x);
-
-        const formattedDate = dateObject.format("DD/MM/YYYY");
-        return <time>{formattedDate}</time>;
-      },
-    },
-    {
-      title: "updatedAt",
-      key: "updatedAt",
-      dataIndex: "updatedAt",
-      render: (x) => {
-        if (!x) {
-          return (
-            <Badge
-              className="site-badge-count-109"
-              style={{}}
-              status="processing"
-              text="Non modifié"
-            />
-          );
-        }
-
-        const dateObject = datetime(x);
-        const formattedDate = dateObject.format("DD/MM/YYYY");
-        return <time>{formattedDate}</time>;
-      },
-    },
-    {
       title: "Action",
       key: "action",
       width: 200,
@@ -248,53 +188,63 @@ console.log('record' , record)
       render: (_, record) => (
         <div className="action-buttons">
           <Row>
-            <Col span={12} className="ms-2">
-              {" "}
-              <Button
-                onClick={() => {
-                  setVisible(true);
-                  setrecord(record);
-                  setAction("EDIT");
-                }}
-              >
-                <EditTwoTone />
-              </Button>
-            </Col>
-            <Col span={12} className="ms-2">
-              {" "}
-              <Button
-                onClick={() => {
-                  setIsModalOpen(true);
-                  console.log("Admin record detail", record);
-                  setrecord(record);
-                  // setrecordOption(record?.option);
-                  // setoptionColor(record?.option[0].color);
-                }}
-              >
-                <InfoCircleOutlined />
-              </Button>
-            </Col>
-            {/* <Col span={8} className="ms-2">
-              {" "}
-              <Button
-                type="primary "
-                danger
-                onClick={() => showPromiseConfirm(record, record.id)}
-              >
-                <DeleteTwoTone twoToneColor="#FFFFFF" />
-              </Button>
-            </Col> */}
+            {abilities.includes("edit") && (
+              <Col span={8} className="ms-2">
+                {" "}
+                <Button
+                  onClick={() => {
+                    setVisible(true);
+                    setrecord(record);
+                    setAction("EDIT");
+                  }}
+                >
+                  <EditTwoTone />
+                </Button>
+              </Col>
+            )}
+
+            {abilities.includes("read") && (
+              <Col span={8} className="ms-2">
+                {" "}
+                <Button
+                  onClick={() => {
+                    setIsModalOpen(true);
+                    console.log("Admin record detail", record);
+                    setrecord(record);
+                  }}
+                >
+                  <InfoCircleOutlined />
+                </Button>
+              </Col>
+            )}
+
+            {abilities.includes("delete") && (
+              <Col span={8} className="ms-2">
+                {" "}
+                <Button
+                  type="primary "
+                  danger
+                  onClick={() => showPromiseConfirm(record, record.id)}
+                >
+                  <DeleteTwoTone twoToneColor="#FFFFFF" />
+                </Button>
+              </Col>
+            )}
           </Row>
         </div>
       ),
     },
   ];
 
+  const abilities = JSON.parse(localStorage.getItem("user"))?.abilities?.find(
+    (el) => el.page === "admins"
+  )?.can;
+
   useEffect(() => {
-    axios.get("https://www.tnprime.shop:6443/api/v1/admins").then((response) => {
+    axios.get("http://127.0.0.1:6443/api/v1/users/users").then((response) => {
       console.log("Admins", response);
-      if (response.data.data) {
-        setData(response.data.data);
+      if (response.data) {
+        setData(response.data);
         setisload(false);
       } else {
         notification.error({ message: "No Data Found" });
@@ -302,23 +252,7 @@ console.log('record' , record)
       }
     });
   }, [refetech]);
-  const onFinish = async (values) => {
-    setisload(true);
-    console.log("valuesssssss", values);
-    // const res = await axios
-    // .post(`https://www.tnprime.shop:6443/api/v1/categories/${values}`)
-    // .then(function (response) {
-    //   // handrefetech();
-    //   setisload(false);
-    // })
-    // .catch(function (err) {
-    //   console.log(err);
-    //   setisload(false);
-    // });
 
-    // console.log("data received:", res);
-    form.resetFields();
-  };
   return (
     <>
       <div className="tabled">
@@ -331,16 +265,18 @@ console.log('record' , record)
               title="Liste des catégories"
               extra={
                 <>
-                  <Button
-                    type="primary"
-                    onClick={() => {
-                      setVisible(true);
-                      setrecord({});
-                      setAction("ADD");
-                    }}
-                  >
-                    Ajouter un utilisateur
-                  </Button>
+                  {abilities.includes("create") && (
+                    <Button
+                      type="primary"
+                      onClick={() => {
+                        setVisible(true);
+                        setrecord({});
+                        setAction("ADD");
+                      }}
+                    >
+                      Ajouter un utilisateur
+                    </Button>
+                  )}
                 </>
               }
             >
@@ -365,96 +301,50 @@ console.log('record' , record)
       </div>
 
       <Modal
-        visible={show1}
-        destroyOnClose
-        width={1000}
+        title="Détail de l'utilisateur"
+        visible={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
         footer={false}
-        onCancel={() => setshow1(false)}
       >
-        {record && (
-          <Card>
-            <Row>
-              <Col span={12}>
-                <div className="ant-row-flex ant-row-flex-center">
-                  <Carousel autoplay>
-                    {record.thumbnailImage?.split(",").map((el, index) => (
-                      <Image src={el} width={"90%"} key={index} />
-                    ))}
-                  </Carousel>
-                </div>
-              </Col>
-              <Col span={12}>
-                <h1>
-                  <strong>{record?.name}</strong>
-                </h1>
-                <hr />
-                <p>
-                  <strong>{record?.description}</strong>
-                </p>
-              </Col>
-            </Row>
-          </Card>
-        )}
-      </Modal>
-      <Modal
-          title="Détail de l'utilisateur"
-          visible={isModalOpen}
-          onCancel={() => setIsModalOpen(false)}
-          footer={false}
+        <Space
+          direction="vertical"
+          // size="middle"
+          style={{
+            display: "flex",
+          }}
         >
-          <Space  direction="vertical"
-    // size="middle"
-    style={{
-      display: 'flex',
-    }}
-    >
-          
-            {" "}
-            <Descriptions bordered >
-           
-              <Descriptions.Item label="Nom d'utilisateur:" span={3}>
-                {" "}
-                <Avatar
-      style={{
-        backgroundColor: '#87d068',
-      }}
-      icon={<UserOutlined />}
-    />
-                <Text keyboard>{record?.username}</Text>
-              </Descriptions.Item >
-              <Descriptions.Item label="Email:" span={3}>
-              {record.email ? record.email : <Badge
-        className="site-badge-count-109"
-        count='non renseigné'
-        style={{
-          backgroundColor: '#f5222d',
-        }}
-      />}
-              </Descriptions.Item>
-              
-              <Descriptions.Item label="Role:" span={3}>
+          {" "}
+          <Descriptions bordered>
+            <Descriptions.Item label="Nom d'utilisateur:" span={3}>
+              {" "}
+              <Avatar
+                style={{
+                  backgroundColor: "#87d068",
+                }}
+                icon={<UserOutlined />}
+              />
+              <Text keyboard>{record?.name}</Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="Email:" span={3}>
+              {record.email ? (
+                record.email
+              ) : (
+                <Badge
+                  className="site-badge-count-109"
+                  count="non renseigné"
+                  style={{
+                    backgroundColor: "#f5222d",
+                  }}
+                />
+              )}
+            </Descriptions.Item>
+
+            <Descriptions.Item label="Role:" span={3}>
               {record?.role}
-              </Descriptions.Item>
-              <Descriptions.Item label="Status:" span={3}>
-              {record?.active ? (
-    <Badge
-      className="site-badge-count-109"
-      count="Activé"
-      style={{ backgroundColor: '#52c41a' }}
-    />
-  ) : (
-    <Badge
-      className="site-badge-count-109"
-      count="Suspendu"
-      style={{ backgroundColor: '#f5222d' }}
-    />
-  )}
- 
-    </Descriptions.Item>
-             
-            </Descriptions>
-          </Space>
-        </Modal>
+            </Descriptions.Item>
+          </Descriptions>
+        </Space>
+      </Modal>
     </>
   );
 };

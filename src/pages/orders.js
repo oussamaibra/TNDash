@@ -122,6 +122,11 @@ const Orders = () => {
   const show = (dar) => {
     console.log("ihekkkkk", dar);
   };
+
+  const abilities = JSON.parse(localStorage.getItem("user"))?.abilities?.find(
+    (el) => el.page === "orders"
+  )?.can;
+
   const showPromiseConfirm = (alldata) => {
     console.log("dddddddddddddd", alldata);
     confirm({
@@ -215,31 +220,36 @@ const Orders = () => {
       render: (_, record) => (
         <div className="action-buttons">
           <Row>
-            <Col span={8} className="ms-2">
-              {" "}
-              <Button
-                onClick={() => {
-                  setshow1(true);
-                  console.log("category record detail", record);
-                  setrecord(record);
+            {abilities.includes("read") && (
+              <Col span={8} className="ms-2">
+                {" "}
+                <Button
+                  onClick={() => {
+                    setshow1(true);
+                    console.log("category record detail", record);
+                    setrecord(record);
 
-                  // setrecordOption(record?.option);
-                  // setoptionColor(record?.option[0].color);
-                }}
-              >
-                <InfoCircleOutlined />
-              </Button>
-            </Col>
-            <Col span={8} className="ms-2">
-              {" "}
-              <Button
-                type="primary "
-                danger
-                onClick={() => showPromiseConfirm(record)}
-              >
-                <DeleteTwoTone twoToneColor="#FFFFFF" />
-              </Button>
-            </Col>
+                    // setrecordOption(record?.option);
+                    // setoptionColor(record?.option[0].color);
+                  }}
+                >
+                  <InfoCircleOutlined />
+                </Button>
+              </Col>
+            )}
+
+            {abilities.includes("delete") && (
+              <Col span={8} className="ms-2">
+                {" "}
+                <Button
+                  type="primary "
+                  danger
+                  onClick={() => showPromiseConfirm(record)}
+                >
+                  <DeleteTwoTone twoToneColor="#FFFFFF" />
+                </Button>
+              </Col>
+            )}
           </Row>
         </div>
       ),
@@ -437,6 +447,7 @@ const Orders = () => {
           record={action === "EDIT" ? record : {}}
           refetech={handrefetech}
           type={action}
+          abilities={abilities}
           onCancel={() => setVisible(false)}
         />
       </div>
@@ -474,24 +485,29 @@ const Orders = () => {
                 Total : {record && record?.totalPrice} TND (+ 8TND)
               </strong>{" "}
             </h2>
-            <Button
-              onClick={() => {
-                handelUpdate("valide");
-              }}
-              type="primary"
-              style={{ marginRight: 15, marginTop: 15 }}
-            >
-              Valider la Commande{" "}
-            </Button>
-            <Button
-              onClick={() => {
-                handelUpdate("annuler");
-              }}
-              danger
-              style={{ marginTop: 15 }}
-            >
-              Annuler la Commande{" "}
-            </Button>
+
+            {abilities.includes("edit") && (
+              <>
+                <Button
+                  onClick={() => {
+                    handelUpdate("valide");
+                  }}
+                  type="primary"
+                  style={{ marginRight: 15, marginTop: 15 }}
+                >
+                  Valider la Commande{" "}
+                </Button>
+                <Button
+                  onClick={() => {
+                    handelUpdate("annuler");
+                  }}
+                  danger
+                  style={{ marginTop: 15 }}
+                >
+                  Annuler la Commande{" "}
+                </Button>
+              </>
+            )}
           </Card>
         )}
       </Modal>
