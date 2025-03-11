@@ -162,8 +162,8 @@ function Sidenav({ color }) {
     </svg>,
   ];
 
-  const pageList = JSON.parse(localStorage.getItem("user")).abilities.map(
-    (el) => el.page
+  const pageList = JSON.parse(localStorage.getItem("user"))?.abilities?.map(
+    (el) => el?.page
   );
 
   return (
@@ -175,7 +175,7 @@ function Sidenav({ color }) {
       <hr />
       <Menu theme="light" mode="inline">
         {/* dashboard */}
-        {pageList.includes("dashboard") && (
+        {pageList?.includes("dashboard") && (
           <Menu.Item key="1">
             <NavLink to="/dashboard">
               <span
@@ -190,7 +190,7 @@ function Sidenav({ color }) {
             </NavLink>
           </Menu.Item>
         )}
-        {pageList.includes("categorie") && (
+        {pageList?.includes("categorie") && (
           <Menu.Item key="3">
             <NavLink to="/categorie">
               <span
@@ -206,7 +206,7 @@ function Sidenav({ color }) {
           </Menu.Item>
         )}
 
-        {pageList.includes("produit") && (
+        {pageList?.includes("produit") && (
           <Menu.Item key="10">
             <NavLink to="/produit">
               <span
@@ -222,7 +222,7 @@ function Sidenav({ color }) {
           </Menu.Item>
         )}
 
-        {pageList.includes("customers") && (
+        {pageList?.includes("customers") && (
           <Menu.Item key="20">
             <NavLink to="/customers">
               <span
@@ -238,7 +238,7 @@ function Sidenav({ color }) {
           </Menu.Item>
         )}
 
-        {pageList.includes("orders") && (
+        {pageList?.includes("orders") && (
           <Menu.Item key="22">
             <NavLink to="/orders">
               <span
@@ -254,7 +254,7 @@ function Sidenav({ color }) {
           </Menu.Item>
         )}
 
-        {pageList.includes("admins") && (
+        {pageList?.includes("admins") && (
           <Menu.Item key="21">
             <NavLink to="/admins">
               <span
