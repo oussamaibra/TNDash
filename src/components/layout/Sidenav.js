@@ -222,6 +222,20 @@ function Sidenav({ color }) {
           </Menu.Item>
         )}
 
+        <Menu.Item key="555">
+          <NavLink to="/Accessories">
+            <span
+              className="icon"
+              style={{
+                background: page === "Accessories" ? color : "",
+              }}
+            >
+              {tables}
+            </span>
+            <span className="label">Accessories</span>
+          </NavLink>
+        </Menu.Item>
+
         {pageList?.includes("customers") && (
           <Menu.Item key="20">
             <NavLink to="/customers">
