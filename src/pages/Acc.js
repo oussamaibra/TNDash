@@ -98,7 +98,9 @@ const Accessories = () => {
       icon: <ExclamationCircleOutlined />,
       async onOk() {
         try {
-          await axios.delete(`https://www.tnprime.shop:6443/api/v1/accessories/${id}`);
+          await axios.delete(
+            `https://www.tnprime.shop:6443/api/v1/accessories/${id}`
+          );
           message.success("Accessory deleted successfully");
           fetchAccessories();
         } catch (error) {
@@ -194,16 +196,14 @@ const Accessories = () => {
       key: "actions",
       render: (accessoryRecord) => (
         <Space size="middle">
-          {abilities.includes("edit") && (
-            <Button
-              icon={<EditTwoTone />}
-              onClick={() => {
-                setRecord(accessoryRecord);
-                setAction("EDIT");
-                setVisible(true);
-              }}
-            />
-          )}
+          <Button
+            icon={<EditTwoTone />}
+            onClick={() => {
+              setRecord(accessoryRecord);
+              setAction("EDIT");
+              setVisible(true);
+            }}
+          />
 
           <Button
             icon={<InfoCircleOutlined />}

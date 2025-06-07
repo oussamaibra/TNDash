@@ -152,7 +152,7 @@ const AccessoryModalAddEdit = (props) => {
 
     if (props.type === "EDIT") {
       await axios
-        .put("https://www.tnprime.shop:6443/api/v1/accessories/" + values.id, payload, config)
+        .put("https://www.tnprime.shop:6443/api/v1/accessories/" + props?.record?._id, payload, config)
         .then((response) => {
           notification.success({ message: "Accessory Updated Successfully!" });
           props.refetch();
