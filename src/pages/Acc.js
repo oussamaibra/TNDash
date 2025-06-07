@@ -14,8 +14,14 @@ import {
   Tag,
   Carousel,
   Badge,
-  Select,
-  message,
+  Divider,
+  Form,
+  Rate,
+  Comment,
+  Avatar,
+  List,
+  Popconfirm,
+  Upload,
 } from "antd";
 import {
   DeleteTwoTone,
@@ -24,14 +30,17 @@ import {
   PlusOutlined,
   ExclamationCircleOutlined,
   SearchOutlined,
+  UserOutlined,
+  UploadOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import moment from "moment";
 import _ from "lodash";
 import AccessoryModalAddEdit from "./Modals/AccessoryModalAddEdit";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { confirm } = Modal;
+const { TextArea } = Input;
 
 const Accessories = () => {
   const [data, setData] = useState([]);
@@ -44,6 +53,12 @@ const Accessories = () => {
   const [action, setAction] = useState("");
   const [record, setRecord] = useState({});
   const [loading, setLoading] = useState(false);
+  const [reviews, setReviews] = useState([]);
+  const [reviewForm] = Form.useForm();
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [editingReview, setEditingReview] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState("");
 
   const abilities =
     JSON.parse(localStorage.getItem("user") || "{}")?.abilities?.find(
@@ -74,10 +89,6 @@ const Accessories = () => {
     }
   };
 
-  const handrefetech = () => {
-    fetchAccessories();
-  };
-
   const handleSearch = (value) => {
     setSearchTerm(value);
     if (!value) {
@@ -101,13 +112,116 @@ const Accessories = () => {
           await axios.delete(
             `https://www.tnprime.shop:6443/api/v1/accessories/${id}`
           );
-          message.success("Accessory deleted successfully");
+          notification.success("Accessory deleted successfully");
           fetchAccessories();
         } catch (error) {
           notification.error({ message: "Failed to delete accessory" });
         }
       },
     });
+  };
+
+  const handleImageUpload = (file) => {
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewImage(reader.result);
+    };
+    reader.readAsDataURL(file);
+    return false; // Prevent default upload behavior
+  };
+
+  const handleReviewSubmit = async () => {
+    try {
+      const values = await reviewForm.validateFields();
+      setReviewLoading(true);
+
+      const formData = new FormData();
+      formData.append("rating", values.rating);
+      formData.append("message", values.message);
+      formData.append("name", values.name);
+      formData.append("email", values.email);
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+
+      if (editingReview) {
+        // Update existing review
+        await axios.put(
+          `https://www.tnprime.shop:6443/api/v1/accessories/${selectedAccessory._id}/reviews/${editingReview._id}`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        notification.success("Review updated successfully");
+      } else {
+        // Add new review
+        await axios.post(
+          `https://www.tnprime.shop:6443/api/v1/accessories/${selectedAccessory._id}/reviews`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        notification.success("Review added successfully");
+      }
+
+      // Refresh reviews
+      const updatedAccessory = await axios.get(
+        `https://www.tnprime.shop:6443/api/v1/accessories/${selectedAccessory._id}`
+      );
+      setReviews(updatedAccessory.data.reviews || []);
+
+      // Reset form
+      reviewForm.resetFields();
+      setEditingReview(null);
+      setImageFile(null);
+      setPreviewImage("");
+    } catch (error) {
+      notification.error({
+        message: `Failed to ${editingReview ? "update" : "add"} review`,
+        description: error.response?.data?.message || "Please try again later",
+      });
+      console.error("Review submit error:", error);
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
+  const handleEditReview = (review) => {
+    setEditingReview(review);
+    reviewForm.setFieldsValue({
+      rating: review.rating,
+      message: review.message,
+      name: review.name,
+      email: review.email,
+    });
+    if (review.image) {
+      setPreviewImage(review.image);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    try {
+      await axios.delete(
+        `https://www.tnprime.shop:6443/api/v1/accessories/${selectedAccessory._id}/reviews/${reviewId}`
+      );
+      notification.success("Review deleted successfully");
+
+      // Refresh reviews
+      const updatedAccessory = await axios.get(
+        `https://www.tnprime.shop:6443/api/v1/accessories/${selectedAccessory._id}`
+      );
+      setReviews(updatedAccessory.data.reviews || []);
+    } catch (error) {
+      notification.error({ message: "Failed to delete review" });
+      console.error("Delete review error:", error);
+    }
   };
 
   const getDiscountLabel = (discount) => {
@@ -197,30 +311,30 @@ const Accessories = () => {
       render: (accessoryRecord) => (
         <Space size="middle">
           <Button
-            icon={<EditTwoTone />}
             onClick={() => {
               setRecord(accessoryRecord);
               setAction("EDIT");
               setVisible(true);
             }}
-          />
+          >
+            Edit
+          </Button>
 
           <Button
-            icon={<InfoCircleOutlined />}
             onClick={() => {
               setSelectedAccessory(accessoryRecord);
               setSelectedVariant(accessoryRecord.varient?.[0]?.name || "");
               setIsDetailModalVisible(true);
+              setReviews(accessoryRecord.reviews || []);
             }}
-          />
+          > See</Button>
 
           <Button
             danger
-            icon={<DeleteTwoTone twoToneColor="#FFFFFF" />}
             onClick={() =>
               handleDelete(accessoryRecord._id || accessoryRecord.id)
             }
-          />
+          > Delete</Button>
         </Space>
       ),
     },
@@ -281,7 +395,7 @@ const Accessories = () => {
         <AccessoryModalAddEdit
           visible={visible}
           record={action === "EDIT" ? record : {}}
-          refetch={handrefetech}
+          refetch={fetchAccessories}
           type={action}
           onCancel={() => setVisible(false)}
         />
@@ -291,130 +405,316 @@ const Accessories = () => {
           title={selectedAccessory?.name}
           visible={isDetailModalVisible}
           width={800}
-          onCancel={() => setIsDetailModalVisible(false)}
+          onCancel={() => {
+            setIsDetailModalVisible(false);
+            setEditingReview(null);
+            reviewForm.resetFields();
+            setImageFile(null);
+            setPreviewImage("");
+          }}
           footer={null}
           destroyOnClose
         >
           {selectedAccessory && (
-            <Badge.Ribbon
-              color={getDiscountColor(selectedAccessory.discount)}
-              text={getDiscountLabel(selectedAccessory.discount)}
-            >
-              <Card>
-                <Row gutter={[16, 16]}>
-                  <Col span={12}>
-                    {selectedAccessory.varient?.find(
-                      (v) => v.name === selectedVariant
-                    )?.images ? (
-                      <Carousel autoplay>
-                        {selectedAccessory.varient
-                          .find((v) => v.name === selectedVariant)
-                          ?.images.split(",")
-                          .filter((img) => img.trim())
-                          .map((img, index) => (
-                            <div key={index}>
-                              <Image
-                                src={img.trim()}
-                                alt={`${selectedAccessory.name} - ${selectedVariant}`}
-                                style={{
-                                  width: "100%",
-                                  height: "300px",
-                                  objectFit: "cover",
-                                }}
-                                fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
-                              />
-                            </div>
+            <>
+              <Badge.Ribbon
+                color={getDiscountColor(selectedAccessory.discount)}
+                text={getDiscountLabel(selectedAccessory.discount)}
+              >
+                <Card>
+                  <Row gutter={[16, 16]}>
+                    <Col span={12}>
+                      {selectedAccessory.varient?.find(
+                        (v) => v.name === selectedVariant
+                      )?.images ? (
+                        <Carousel autoplay>
+                          {selectedAccessory.varient
+                            .find((v) => v.name === selectedVariant)
+                            ?.images.split(",")
+                            .filter((img) => img.trim())
+                            .map((img, index) => (
+                              <div key={index}>
+                                <Image
+                                  src={img.trim()}
+                                  alt={`${selectedAccessory.name} - ${selectedVariant}`}
+                                  style={{
+                                    width: "100%",
+                                    height: "300px",
+                                    objectFit: "cover",
+                                  }}
+                                  fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
+                                />
+                              </div>
+                            ))}
+                        </Carousel>
+                      ) : (
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "300px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "#f5f5f5",
+                            border: "1px dashed #d9d9d9",
+                          }}
+                        >
+                          <span style={{ color: "#999" }}>
+                            No images available
+                          </span>
+                        </div>
+                      )}
+                    </Col>
+                    <Col span={12}>
+                      <Title level={4}>{selectedAccessory.name}</Title>
+                      <p style={{ marginBottom: "20px", lineHeight: "1.6" }}>
+                        {selectedAccessory.details || "No details available"}
+                      </p>
+
+                      <div style={{ margin: "20px 0" }}>
+                        <Title level={5}>Variants:</Title>
+                        <Space wrap>
+                          {selectedAccessory.varient?.map((v, index) => (
+                            <Button
+                              key={index}
+                              type={
+                                selectedVariant === v.name
+                                  ? "primary"
+                                  : "default"
+                              }
+                              onClick={() => setSelectedVariant(v.name)}
+                              style={{ marginBottom: "8px" }}
+                            >
+                              {v.name}
+                            </Button>
                           ))}
-                      </Carousel>
-                    ) : (
-                      <div
-                        style={{
-                          width: "100%",
-                          height: "300px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backgroundColor: "#f5f5f5",
-                          border: "1px dashed #d9d9d9",
-                        }}
-                      >
-                        <span style={{ color: "#999" }}>
-                          No images available
-                        </span>
+                        </Space>
                       </div>
-                    )}
-                  </Col>
-                  <Col span={12}>
-                    <Title level={4}>{selectedAccessory.name}</Title>
-                    <p style={{ marginBottom: "20px", lineHeight: "1.6" }}>
-                      {selectedAccessory.details || "No details available"}
-                    </p>
 
-                    <div style={{ margin: "20px 0" }}>
-                      <Title level={5}>Variants:</Title>
-                      <Space wrap>
-                        {selectedAccessory.varient?.map((v, index) => (
-                          <Button
-                            key={index}
-                            type={
-                              selectedVariant === v.name ? "primary" : "default"
-                            }
-                            onClick={() => setSelectedVariant(v.name)}
-                            style={{ marginBottom: "8px" }}
-                          >
-                            {v.name}
-                          </Button>
-                        ))}
-                      </Space>
-                    </div>
+                      <div style={{ margin: "20px 0" }}>
+                        <Title level={5}>Price:</Title>
+                        <Tag
+                          color="green"
+                          style={{ fontSize: 18, padding: "8px 12px" }}
+                        >
+                          €
+                          {selectedAccessory.varient?.find(
+                            (v) => v.name === selectedVariant
+                          )?.price || "N/A"}
+                        </Tag>
+                      </div>
 
-                    <div style={{ margin: "20px 0" }}>
-                      <Title level={5}>Price:</Title>
-                      <Tag
-                        color="green"
-                        style={{ fontSize: 18, padding: "8px 12px" }}
-                      >
-                        €
-                        {selectedAccessory.varient?.find(
-                          (v) => v.name === selectedVariant
-                        )?.price || "N/A"}
-                      </Tag>
-                    </div>
-
-                    <div style={{ margin: "20px 0" }}>
-                      <Title level={5}>Stock:</Title>
-                      <Tag
-                        color={
-                          selectedAccessory.stock &&
+                      <div style={{ margin: "20px 0" }}>
+                        <Title level={5}>Stock:</Title>
+                        <Tag
+                          color={
+                            selectedAccessory.stock &&
+                            selectedAccessory.stock !== "0" &&
+                            selectedAccessory.stock.toLowerCase() !==
+                              "out of stock"
+                              ? "green"
+                              : "red"
+                          }
+                          style={{ fontSize: 16, padding: "6px 10px" }}
+                        >
+                          {selectedAccessory.stock &&
                           selectedAccessory.stock !== "0" &&
                           selectedAccessory.stock.toLowerCase() !==
                             "out of stock"
-                            ? "green"
-                            : "red"
-                        }
-                        style={{ fontSize: 16, padding: "6px 10px" }}
-                      >
-                        {selectedAccessory.stock &&
-                        selectedAccessory.stock !== "0" &&
-                        selectedAccessory.stock.toLowerCase() !== "out of stock"
-                          ? `${selectedAccessory.stock} Available`
-                          : "Out of Stock"}
-                      </Tag>
-                    </div>
+                            ? `${selectedAccessory.stock} Available`
+                            : "Out of Stock"}
+                        </Tag>
+                      </div>
 
-                    <div style={{ margin: "20px 0" }}>
-                      <Title level={5}>Status:</Title>
-                      <Tag
-                        color={getDiscountColor(selectedAccessory.discount)}
-                        style={{ fontSize: 16, padding: "6px 10px" }}
+                      <div style={{ margin: "20px 0" }}>
+                        <Title level={5}>Status:</Title>
+                        <Tag
+                          color={getDiscountColor(selectedAccessory.discount)}
+                          style={{ fontSize: 16, padding: "6px 10px" }}
+                        >
+                          {getDiscountLabel(selectedAccessory.discount)}
+                        </Tag>
+                      </div>
+                    </Col>
+                  </Row>
+                </Card>
+              </Badge.Ribbon>
+
+              <Divider orientation="left">Customer Reviews</Divider>
+
+              <Card>
+                <Form form={reviewForm} layout="vertical">
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Form.Item
+                        name="name"
+                        label="Your Name"
+                        rules={[
+                          { required: true, message: "Please enter your name" },
+                        ]}
                       >
-                        {getDiscountLabel(selectedAccessory.discount)}
-                      </Tag>
-                    </div>
-                  </Col>
-                </Row>
+                        <Input placeholder="Enter your name" />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        name="email"
+                        label="Your Email"
+                        rules={[
+                          {
+                            required: true,
+                            message: "Please enter your email",
+                          },
+                          {
+                            type: "email",
+                            message: "Please enter a valid email",
+                          },
+                        ]}
+                      >
+                        <Input placeholder="Enter your email" />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+
+                  <Form.Item
+                    name="rating"
+                    label="Rating"
+                    rules={[
+                      { required: true, message: "Please rate this product" },
+                    ]}
+                  >
+                    <Rate />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="message"
+                    label="Your Review"
+                    rules={[
+                      { required: true, message: "Please write your review" },
+                      {
+                        max: 500,
+                        message: "Review must be less than 500 characters",
+                      },
+                    ]}
+                  >
+                    <TextArea
+                      rows={4}
+                      placeholder="Share your experience with this product"
+                    />
+                  </Form.Item>
+
+                  <Form.Item label="Upload Image">
+                    <Upload
+                      beforeUpload={handleImageUpload}
+                      showUploadList={false}
+                      accept="image/*"
+                    >
+                      <Button icon={<UploadOutlined />}>Click to Upload</Button>
+                    </Upload>
+                    {previewImage && (
+                      <div style={{ marginTop: 16 }}>
+                        <Image
+                          src={previewImage}
+                          alt="Review preview"
+                          width={100}
+                        />
+                      </div>
+                    )}
+                  </Form.Item>
+
+                  <Form.Item>
+                    <Button
+                      type="primary"
+                      onClick={handleReviewSubmit}
+                      loading={reviewLoading}
+                    >
+                      {editingReview ? "Update Review" : "Submit Review"}
+                    </Button>
+                    {editingReview && (
+                      <Button
+                        style={{ marginLeft: 8 }}
+                        onClick={() => {
+                          setEditingReview(null);
+                          reviewForm.resetFields();
+                          setImageFile(null);
+                          setPreviewImage("");
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                  </Form.Item>
+                </Form>
+
+                <List
+                  className="comment-list"
+                  header={`${reviews.length} reviews`}
+                  itemLayout="horizontal"
+                  dataSource={reviews}
+                  loading={reviewLoading}
+                  renderItem={(review) => (
+                    <li>
+                      <Comment
+                        author={review.name || "Anonymous"}
+                        avatar={
+                          <Avatar icon={<UserOutlined />} src={review.image} />
+                        }
+                        content={
+                          <>
+                            <Rate
+                              disabled
+                              value={review.rating}
+                              style={{ fontSize: 14, marginBottom: 8 }}
+                            />
+                            <p>{review.message}</p>
+                            {review.image && (
+                              <Image
+                                src={review.image}
+                                alt="Review"
+                                width={100}
+                                style={{ marginTop: 8 }}
+                              />
+                            )}
+                          </>
+                        }
+                        datetime={
+                          <Text type="secondary">
+                            {moment(review.createdAt).format(
+                              "MMMM Do YYYY, h:mm a"
+                            )}
+                          </Text>
+                        }
+                        actions={[
+                          <Button
+                            type="text"
+                            size="small"
+                            icon={<EditTwoTone />}
+                            onClick={() => handleEditReview(review)}
+                          >
+                            Edit
+                          </Button>,
+                          <Popconfirm
+                            title="Are you sure you want to delete this review?"
+                            onConfirm={() => handleDeleteReview(review._id)}
+                            okText="Yes"
+                            cancelText="No"
+                          >
+                            <Button
+                              type="text"
+                              size="small"
+                              danger
+                              icon={<DeleteTwoTone />}
+                            >
+                              Delete
+                            </Button>
+                          </Popconfirm>,
+                        ]}
+                      />
+                    </li>
+                  )}
+                />
               </Card>
-            </Badge.Ribbon>
+            </>
           )}
         </Modal>
       </div>
