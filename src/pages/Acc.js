@@ -136,46 +136,30 @@ const Accessories = () => {
       const values = await reviewForm.validateFields();
       setReviewLoading(true);
 
-      const formData = new FormData();
-      formData.append("rating", values.rating);
-      formData.append("message", values.message);
-      formData.append("name", values.name);
-      formData.append("email", values.email);
-      if (imageFile) {
-        formData.append("image", imageFile);
-      }
-
       if (editingReview) {
         // Update existing review
         await axios.put(
-          `https://www.tnprime.shop:6443/api/v1/accessories/${selectedAccessory._id}/reviews/${editingReview._id}`,
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
+          `https://www.tnprime.shop:6443/api/v1/review/${editingReview}`,
+          { ...values, productId: selectedAccessory._id }
         );
+
+
         notification.success("Review updated successfully");
       } else {
         // Add new review
-        await axios.post(
-          `https://www.tnprime.shop:6443/api/v1/accessories/${selectedAccessory._id}/reviews`,
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
+        await axios.post(`https://www.tnprime.shop:6443/api/v1/review`, {
+          ...values,
+          productId: selectedAccessory._id,
+        });
         notification.success("Review added successfully");
       }
 
       // Refresh reviews
       const updatedAccessory = await axios.get(
-        `https://www.tnprime.shop:6443/api/v1/accessories/${selectedAccessory._id}`
+        `https://www.tnprime.shop:6443/api/v1/review/${selectedAccessory._id}`
       );
-      setReviews(updatedAccessory.data.reviews || []);
+      console.log("rrrrrrrrrrrrrrr", updatedAccessory.data);
+      setReviews(updatedAccessory.data || []);
 
       // Reset form
       reviewForm.resetFields();
@@ -194,30 +178,32 @@ const Accessories = () => {
   };
 
   const handleEditReview = (review) => {
-    setEditingReview(review);
+    setEditingReview(review._id);
     reviewForm.setFieldsValue({
+      productId: selectedAccessory._id,
       rating: review.rating,
       message: review.message,
       name: review.name,
       email: review.email,
+      _id: review._id,
     });
     if (review.image) {
-      setPreviewImage(review.image);
+      setPreviewImage(`https://www.tnprime.shop:6443/images/${review.image}`);
     }
   };
 
   const handleDeleteReview = async (reviewId) => {
     try {
       await axios.delete(
-        `https://www.tnprime.shop:6443/api/v1/accessories/${selectedAccessory._id}/reviews/${reviewId}`
+        `https://www.tnprime.shop:6443/api/v1/review/${reviewId}`
       );
       notification.success("Review deleted successfully");
 
       // Refresh reviews
       const updatedAccessory = await axios.get(
-        `https://www.tnprime.shop:6443/api/v1/accessories/${selectedAccessory._id}`
+        `https://www.tnprime.shop:6443/api/v1/review/${selectedAccessory._id}`
       );
-      setReviews(updatedAccessory.data.reviews || []);
+      setReviews(updatedAccessory.data || []);
     } catch (error) {
       notification.error({ message: "Failed to delete review" });
       console.error("Delete review error:", error);
@@ -321,20 +307,29 @@ const Accessories = () => {
           </Button>
 
           <Button
-            onClick={() => {
+            onClick={async () => {
               setSelectedAccessory(accessoryRecord);
               setSelectedVariant(accessoryRecord.varient?.[0]?.name || "");
               setIsDetailModalVisible(true);
-              setReviews(accessoryRecord.reviews || []);
+              const updatedAccessory = await axios.get(
+                `https://www.tnprime.shop:6443/api/v1/review/${accessoryRecord?._id}`
+              );
+              setReviews(updatedAccessory.data || []);
             }}
-          > See</Button>
+          >
+            {" "}
+            See
+          </Button>
 
           <Button
             danger
             onClick={() =>
               handleDelete(accessoryRecord._id || accessoryRecord.id)
             }
-          > Delete</Button>
+          >
+            {" "}
+            Delete
+          </Button>
         </Space>
       ),
     },
@@ -669,7 +664,7 @@ const Accessories = () => {
                             <p>{review.message}</p>
                             {review.image && (
                               <Image
-                                src={review.image}
+                                src={`https://www.tnprime.shop:6443/images/${review.image}`}
                                 alt="Review"
                                 width={100}
                                 style={{ marginTop: 8 }}
