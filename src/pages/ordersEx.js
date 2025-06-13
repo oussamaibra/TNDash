@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 /*!
 =========================================================
 * Muse Ant Design Dashboard - v1.0.0
@@ -81,7 +82,7 @@ const getBase64 = (file) =>
 
 // project table start
 
-const Orders = () => {
+const ordersEx = () => {
   const onChange = (e) => console.log(`radio checked:${e.target.value}`);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
@@ -290,7 +291,8 @@ const Orders = () => {
           const sortedArray = _.sortBy(response?.data?.data, function (o) {
             return new moment(o?.city);
           }).reverse();
-          setData(sortedArray.filter((el) => el.ville !== "Extern"));
+
+          setData(sortedArray.filter((el) => el.ville === "Extern"));
           setisload(false);
         } else {
           notification.error({ message: "No Data Found" });
@@ -514,4 +516,4 @@ const Orders = () => {
   );
 };
 
-export default Orders;
+export default ordersEx;
