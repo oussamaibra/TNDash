@@ -125,7 +125,7 @@ const ordersEx = () => {
   };
 
   const abilities = JSON.parse(localStorage.getItem("user"))?.abilities?.find(
-    (el) => el.page === "orders"
+    (el) => el.page === "ordersEx"
   )?.can;
 
   const showPromiseConfirm = (alldata) => {
