@@ -257,6 +257,11 @@ const AddOrUpdateAdmin = (props) => {
                                               value: "orders",
                                             },
                                             {
+                                              label:
+                                                "orders Externe (Accessories & ScreenProtector)",
+                                              value: "ordersEx",
+                                            },
+                                            {
                                               label: "admins",
                                               value: "admins",
                                             },
@@ -280,7 +285,10 @@ const AddOrUpdateAdmin = (props) => {
                                           placeholder="can"
                                           mode="multiple"
                                           options={[
-                                            { label: "create", value: "create" },
+                                            {
+                                              label: "create",
+                                              value: "create",
+                                            },
                                             { label: "read", value: "read" },
                                             {
                                               label: "delete",

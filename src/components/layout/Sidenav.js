@@ -222,19 +222,21 @@ function Sidenav({ color }) {
           </Menu.Item>
         )}
 
-        <Menu.Item key="555">
-          <NavLink to="/Accessories">
-            <span
-              className="icon"
-              style={{
-                background: page === "Accessories" ? color : "",
-              }}
-            >
-              {tables}
-            </span>
-            <span className="label">Accessories</span>
-          </NavLink>
-        </Menu.Item>
+        {pageList?.includes("produit") && (
+          <Menu.Item key="555">
+            <NavLink to="/Accessories">
+              <span
+                className="icon"
+                style={{
+                  background: page === "Accessories" ? color : "",
+                }}
+              >
+                {tables}
+              </span>
+              <span className="label">Accessories</span>
+            </NavLink>
+          </Menu.Item>
+        )}
 
         {pageList?.includes("customers") && (
           <Menu.Item key="20">
@@ -264,6 +266,22 @@ function Sidenav({ color }) {
                 {tables}
               </span>
               <span className="label">commandes</span>
+            </NavLink>
+          </Menu.Item>
+        )}
+
+        {pageList?.includes("ordersEx") && (
+          <Menu.Item key="22">
+            <NavLink to="/ordersEx">
+              <span
+                className="icon"
+                style={{
+                  background: page === "ordersEx" ? color : "",
+                }}
+              >
+                {tables}
+              </span>
+              <span className="label">commandes Externe</span>
             </NavLink>
           </Menu.Item>
         )}

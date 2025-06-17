@@ -18,6 +18,7 @@ import Admins from "./pages/Admins";
 import Collections from "./pages/collections";
 import ProtectedRoute from "./Protected"; // Import the ProtectedRoute component
 import Accessories from "./pages/Acc";
+import ordersEx from "./pages/ordersEx";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <ProtectedRoute exact path="/categorie" component={Categorie} />
           <ProtectedRoute exact path="/collections" component={Collections} />
           <ProtectedRoute exact path="/orders" component={Orders} />
+          <ProtectedRoute exact path="/ordersEx" component={ordersEx} />
           <ProtectedRoute exact path="/customers" component={Customers} />
           <ProtectedRoute exact path="/produit" component={Produit} />
           <ProtectedRoute exact path="/Accessories" component={Accessories} />

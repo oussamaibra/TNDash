@@ -195,8 +195,8 @@ const ordersEx = () => {
 
     {
       title: "Order Date Time",
-      dataIndex: "city",
-      key: "city",
+      dataIndex: "createdAt",
+      key: "createdAt",
     },
     {
       title: "Product (if one only)",
@@ -292,7 +292,7 @@ const ordersEx = () => {
             return new moment(o?.city);
           }).reverse();
 
-          setData(sortedArray.filter((el) => el.ville === "Extern"));
+          setData(sortedArray.filter((el) => el.city === "Extern"));
           setisload(false);
         } else {
           notification.error({ message: "No Data Found" });
