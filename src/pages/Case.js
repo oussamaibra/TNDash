@@ -243,7 +243,7 @@ const Case = () => {
       key: "stock",
       render: (stock) => {
         const isInStock =
-          stock && stock !== "0" && stock.toLowerCase() !== "out of stock";
+          stock && stock !== 0
         return (
           <Tag color={isInStock ? "green" : "red"}>
             {isInStock ? `${stock} Available` : "Out of Stock"}
@@ -304,21 +304,6 @@ const Case = () => {
             }}
           >
             Edit
-          </Button>
-
-          <Button
-            onClick={async () => {
-              setSelectedAccessory(accessoryRecord);
-              setSelectedVariant(accessoryRecord.varient?.[0]?.name || "");
-              setIsDetailModalVisible(true);
-              const updatedAccessory = await axios.get(
-                `https://www.tnprime.shop:6443/api/v1/review/${accessoryRecord?._id}`
-              );
-              setReviews(updatedAccessory.data || []);
-            }}
-          >
-            {" "}
-            See
           </Button>
 
           <Button
@@ -500,7 +485,7 @@ const Case = () => {
                         </Tag>
                       </div>
 
-                      <div style={{ margin: "20px 0" }}>
+                      {/* <div style={{ margin: "20px 0" }}>
                         <Title level={5}>Stock:</Title>
                         <Tag
                           color={
@@ -520,7 +505,7 @@ const Case = () => {
                             ? `${selectedAccessory.stock} Available`
                             : "Out of Stock"}
                         </Tag>
-                      </div>
+                      </div> */}
 
                       <div style={{ margin: "20px 0" }}>
                         <Title level={5}>Status:</Title>
