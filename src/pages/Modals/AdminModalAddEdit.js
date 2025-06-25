@@ -262,6 +262,10 @@ const AddOrUpdateAdmin = (props) => {
                                               value: "ordersEx",
                                             },
                                             {
+                                              label: "Case",
+                                              value: "Case",
+                                            },
+                                            {
                                               label: "admins",
                                               value: "admins",
                                             },

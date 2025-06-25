@@ -286,6 +286,22 @@ function Sidenav({ color }) {
           </Menu.Item>
         )}
 
+        {pageList?.includes("Case") && (
+          <Menu.Item key="22">
+            <NavLink to="/Case">
+              <span
+                className="icon"
+                style={{
+                  background: page === "Case" ? color : "",
+                }}
+              >
+                {tables}
+              </span>
+              <span className="label">Case</span>
+            </NavLink>
+          </Menu.Item>
+        )}
+
         {pageList?.includes("admins") && (
           <Menu.Item key="21">
             <NavLink to="/admins">
